@@ -1,0 +1,41 @@
+name: Notify Discord
+
+on:
+  workflow_run:
+    workflows: ["pages-build-deployment"]
+    types:
+      - completed
+
+jobs:
+  notify:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+
+      - name: Read notify.txt
+        id: notify
+        shell: pwsh
+        run: |
+          $content = Get-Content notify.txt -Raw
+
+          "content<<EOF" >> $env:GITHUB_OUTPUT
+          $content >> $env:GITHUB_OUTPUT
+          "EOF" >> $env:GITHUB_OUTPUT
+
+      - name: Send Discord Notification
+        shell: pwsh
+        run: |
+          $body = @{
+            content = "${{ steps.notify.outputs.content }}"
+          } | ConvertTo-Json
+
+          Invoke-RestMethod `
+            -Uri "${{ secrets.DISCORD_WEBHOOK }}" `
+            -Method Post `
+            -ContentType "application/json" `
+            -Body $body
