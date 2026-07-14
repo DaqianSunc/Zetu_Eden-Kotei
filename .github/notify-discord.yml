@@ -35,7 +35,7 @@ jobs:
           } | ConvertTo-Json
 
           Invoke-RestMethod `
-            -Uri "${{ secrets.DISCORD_WEBHOOK }}" `
+            -Uri "${{ secrets.DISCORD_WEBHOOK_TEST }}" `
             -Method Post `
             -ContentType "application/json" `
             -Body $body
